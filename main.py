@@ -24,11 +24,14 @@ class Player(Turtle):
         self.speed(0)
         self.color(color)
         self.player_color = color
+        self.pencolor(color)
         self.penup()
         self.goto(x,y)
         self.setheading(90)
         self.shape("turtle")
         self.bullets = []
+        self.colors = [color,"red","yellow"]
+        self.health = 3
         self.alive = True
         self.st()
         screen.onkeypress(self.turn_left, left_key)
@@ -50,6 +53,14 @@ class Player(Turtle):
             self.setheading(180 - self.heading())
         if self.ycor() > 230 or self.ycor() < -230:
             self.setheading(-self.heading())
+    
+    def damage(self):
+        self.health -= 1
+        if self.health > 0:
+            self.pencolor(self.colors[self.health])
+        else:
+            self.ht()
+            self.alive = False
 
 
 class Bullet(Turtle):
@@ -61,18 +72,21 @@ class Bullet(Turtle):
         self.penup()
         self.setheading(player.heading()) 
         self.goto(player.xcor(),player.ycor())
+        self.forward(10)
+        self.player = player
         self.st()
-    def move(self, player):
-        self.forward(4)
+    
+    def move(self):
+        self.forward(10)
         if self.xcor() > 230 or self.xcor() < -230:
-            self.ht()
-            player.bullets.remove(self)
+            self.remove()
         if self.ycor() > 230 or self.ycor() < -230:
+            self.remove()
+    
+    def remove(self):
+        if self in self.player.bullets:
             self.ht()
-            player.bullets.remove(self)
-    def die(self):
-        self.ht()
-        player.bullets.remove(self)
+            self.player.bullets.remove(self)
 
 
 
@@ -92,13 +106,15 @@ while p1.alive and p2.alive:
     p1.move()
     p2.move()
     for bullet in p1.bullets:
-        bullet.move(p1)
-        if bullet.xcor() == p2.xcor():
-            bullet.die()
+        bullet.move()
+        if p2.distance(bullet) <= 10:
+            p2.damage()
+            bullet.remove()
     for bullet in p2.bullets:
-        bullet.move(p2)
-        if bullet.xcor() == p1.xcor():
-            bullet.die()
+        bullet.move()
+        if p1.distance(bullet) <= 10:
+            p1.damage()
+            bullet.remove()
 
 
 screen.exitonclick()
